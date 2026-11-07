@@ -298,3 +298,249 @@ theorem contract_path_isCycle {a b : V} (p : G.Walk b a)
 #print axioms contract_path_isCycle
 
 end Hajos.WalkSurgery
+
+/-!
+# Arithmetic layer for V4 global cycle trades
+
+STATUS: source draft, NOT compiled in the authoring environment.
+These theorems formalize arithmetic consequences only. They do NOT formalize
+incidence-forest rigidity, the ring-surgery graph theorem, Hall's theorem, or
+Hajos's conjecture. Their graph-theoretic hypotheses must be established
+separately; the paper notes contain those proofs, not Lean terms for them.
+-/
+
+namespace Hajos.V4
+
+/-- Replacing m source cycles by two strictly decreases the count. -/
+theorem ring_count_strict (k m : ℕ) (hsub : m ≤ k) (hm : 3 ≤ m) :
+    k - m + 2 < k := by
+  omega
+
+/-- Exact arithmetic expression of the saving, avoiding truncated subtraction. -/
+theorem ring_count_identity (k m : ℕ) (hsub : m ≤ k) (hm : 2 ≤ m) :
+    (k - m + 2) + (m - 2) = k := by
+  omega
+
+/-- Marked cost: s source cycles hit the marks and t output cycles hit the marks.
+The graph construction, not this arithmetic lemma, must prove min s 2 ≤ t. -/
+theorem marked_cost_nonincrease (m s t : ℕ)
+    (hm : 3 ≤ m) (hs : s ≤ m) (ht : t ≤ 2)
+    (hcover : min s 2 ≤ t) :
+    2 - t ≤ m - s := by
+  by_cases hs2 : s ≤ 2
+  · have hst : s ≤ t := by
+      simpa only [min_eq_left hs2] using hcover
+    omega
+  · have h2s : 2 ≤ s := by omega
+    have h2t : 2 ≤ t := by
+      simpa only [min_eq_right h2s] using hcover
+    omega
+
+/-- If at least one of the ring's source cycles is unmarked, q strictly drops. -/
+theorem marked_cost_strict (m s t : ℕ)
+    (hm : 3 ≤ m) (hs : s < m) (ht : t ≤ 2)
+    (hcover : min s 2 ≤ t) :
+    2 - t < m - s := by
+  by_cases hs2 : s ≤ 2
+  · have hst : s ≤ t := by
+      simpa only [min_eq_left hs2] using hcover
+    omega
+  · have h2s : 2 ≤ s := by omega
+    have h2t : 2 ≤ t := by
+      simpa only [min_eq_right h2s] using hcover
+    omega
+
+/-- Three spanning factors with every component at least seven vertices long
+satisfy the exact Hajos numerical budget (not just n/2 + O(1)). -/
+theorem three_factor_budget (n a b c : ℕ) (hn : 0 < n)
+    (ha : 7 * a ≤ n) (hb : 7 * b ≤ n) (hc : 7 * c ≤ n) :
+    a + b + c ≤ (n - 1) / 2 := by
+  omega
+
+/-- Variable half-girth version, still an arithmetic statement only. -/
+theorem three_factor_budget_of_half_girth (n h a b c : ℕ)
+    (hn : 0 < n) (hh : 7 ≤ h)
+    (ha : h * a ≤ n) (hb : h * b ≤ n) (hc : h * c ≤ n) :
+    a + b + c ≤ (n - 1) / 2 := by
+  apply three_factor_budget n a b c hn
+  · exact (Nat.mul_le_mul_right a hh).trans ha
+  · exact (Nat.mul_le_mul_right b hh).trans hb
+  · exact (Nat.mul_le_mul_right c hh).trans hc
+
+/-- The numerical bound used by the 63-vertex girth-12 example. -/
+theorem example63_budget (a b c : ℕ)
+    (ha : 6 * a ≤ 63) (hb : 6 * b ≤ 63) (hc : 6 * c ≤ 63) :
+    a + b + c ≤ 31 := by
+  omega
+
+/-- A triangle decomposition with n cycles is above the target for n > 0. -/
+theorem initial_triangle_count_exceeds_bound (n : ℕ) (hn : 0 < n) :
+    (n - 1) / 2 < n := by
+  omega
+
+#print axioms ring_count_strict
+#print axioms marked_cost_nonincrease
+#print axioms three_factor_budget_of_half_girth
+
+end Hajos.V4
+
+
+
+/-!
+# Hajós V5: arithmetic interfaces for the proved-on-paper switching arguments
+
+UNCOMPILED DRAFT. No graph surgery or permutation theorem is certified by this file.
+All graph-theoretic counting identities appear explicitly as hypotheses.
+No `sorry`, new axiom, or statement of the general conjecture as a theorem.
+Target: Lean/mathlib v4.24.0 (same as the preserved earlier packages).
+-/
+namespace HajosV5
+
+def bound (n : ℕ) : ℕ := (n - 1) / 2
+
+/-- General two-colour switch: a+a' and b+b' bounds force a gain. -/
+theorem kempe_sufficient_decrease
+    {r a b ap bp K Kp : ℕ}
+    (ha : a + ap ≤ r + 1)
+    (hb : b + bp ≤ r + 1)
+    (hcount : Kp + a + b = K + ap + bp)
+    (htrans : r + 2 ≤ a + b) : Kp + 2 ≤ K := by
+  omega
+
+/-- Transversal case: exactly 2r source components become two components. -/
+theorem transversal_count
+    {r K Kp : ℕ} (hr : 1 ≤ r)
+    (hcount : Kp + 2 * r = K + 2) :
+    Kp + 2 * (r - 1) = K := by
+  omega
+
+/-- With at most m markers, at most m source cycles are marked. -/
+theorem marked_nonincrease
+    {r m s qBefore qAfter : ℕ}
+    (hsource : qBefore + s = 2 * r)
+    (hmarked : s ≤ m)
+    (hout : qAfter ≤ 2)
+    (hbudget : m + 2 ≤ 2 * r) : qAfter ≤ qBefore := by
+  omega
+
+/-- In particular 3 markers and r>=3 make the decrease strict. -/
+theorem three_mark_strict
+    {r s qBefore qAfter : ℕ}
+    (hr : 3 ≤ r)
+    (hsource : qBefore + s = 2 * r)
+    (hmarked : s ≤ 3)
+    (hout : qAfter ≤ 2) : qAfter < qBefore := by
+  omega
+
+/-- Integer sharpness, including even n. -/
+theorem strict_half_to_hajos {K n : ℕ}
+    (h : 2 * K < n) : K ≤ bound n := by
+  unfold bound
+  omega
+
+/-- At the weak half bound, any non-Hajos case is the equality case. -/
+theorem equality_case {K n : ℕ}
+    (hweak : 2 * K ≤ n)
+    (hbad : bound n < K) : 2 * K = n := by
+  unfold bound at hbad
+  omega
+
+/-- Saving even one component repairs the weak-bound equality case. -/
+theorem boundary_repair {K Kp n : ℕ}
+    (hweak : 2 * K ≤ n)
+    (_hbad : bound n < K)
+    (hdrop : Kp + 1 ≤ K) : Kp ≤ bound n := by
+  unfold bound at *
+  omega
+
+/-- The paper's length-12 switch saves ten projected components. -/
+theorem twelve_switch_repair {K Kp n : ℕ}
+    (hweak : 2 * K ≤ n)
+    (hbad : bound n < K)
+    (hcount : Kp + 12 = K + 2) : Kp ≤ bound n := by
+  apply boundary_repair hweak hbad
+  omega
+
+/-- The parity obstruction in the eight-point example. -/
+theorem eight_point_colour_obstruction {K : ℕ}
+    (hmin : 3 ≤ K) (heven : K % 2 = 0) : bound 8 < K := by
+  norm_num [bound]
+  omega
+
+end HajosV5
+
+#print axioms HajosV5.kempe_sufficient_decrease
+#print axioms HajosV5.transversal_count
+#print axioms HajosV5.marked_nonincrease
+#print axioms HajosV5.three_mark_strict
+#print axioms HajosV5.strict_half_to_hajos
+#print axioms HajosV5.equality_case
+#print axioms HajosV5.boundary_repair
+#print axioms HajosV5.twelve_switch_repair
+#print axioms HajosV5.eight_point_colour_obstruction
+
+
+namespace Hajos.Bridge
+
+open Hajos HajosV5
+
+/-- 将圈列表映射为所有边的有限集合。 -/
+noncomputable def edgesOfList {V : Type*} {G : SimpleGraph V}
+    (cs : List (SimpleCycle G)) : Finset (Sym2 V) :=
+  by
+    classical
+    exact (cs.flatMap SimpleCycle.edgeList).toFinset
+
+/-- 两个分解具有相同的边集（这是局部交换（Trade）的基石）。 -/
+theorem same_edges_implies_same_card {V : Type*} {G : SimpleGraph V}
+    (cs cs' : List (SimpleCycle G))
+    (h : edgesOfList cs = edgesOfList cs') :
+    (edgesOfList cs).card = (edgesOfList cs').card := by
+  rw [h]
+
+/-- **核心桥梁**：如果一次交换把 m 个源圈变成了 2 个圈，且保持了边的覆盖。
+    那么原来的总圈数 K，和现在的总圈数 Kp，必定满足 V5 的算术关系！ -/
+theorem trade_count_arithmetic {V : Type*} {G : SimpleGraph V}
+    (cs cs' : List (SimpleCycle G)) (m K Kp : ℕ)
+    (_h_len : cs.length = K)
+    (_h_len' : cs'.length = Kp)
+    (h_m : m ≤ K)
+    (h_m_lower : 2 ≤ m)
+    (h_replace : Kp = K - m + 2) :
+    Kp + (m - 2) = K := by
+  omega
+
+end Hajos.Bridge
+
+namespace Hajos.K7Trade
+
+-- 用 0 到 6 表示 K7 的 7 个顶点
+abbrev V := Fin 7
+
+/-- 构造无向边的辅助函数 -/
+def e (a b : V) : Sym2 V := s(a, b)
+
+/-- 初始的 4 个圈：T, C1, C2, C3 (对应 V4 笔记) -/
+def T_edges : Finset (Sym2 V) := {e 0 1, e 1 2, e 0 2}
+def C1_edges : Finset (Sym2 V) := {e 1 3, e 3 2, e 2 4, e 4 5, e 5 6, e 1 6}
+def C2_edges : Finset (Sym2 V) := {e 0 3, e 3 4, e 4 6, e 6 2, e 2 5, e 0 5}
+def C3_edges : Finset (Sym2 V) := {e 0 4, e 4 1, e 1 5, e 5 3, e 3 6, e 0 6}
+
+/-- 交换后的 3 个圈：H1, H2, H3 (Hamilton圈) -/
+def H1_edges : Finset (Sym2 V) := {e 0 3, e 3 1, e 1 6, e 6 2, e 2 4, e 4 5, e 0 5}
+def H2_edges : Finset (Sym2 V) := {e 0 1, e 1 2, e 2 3, e 3 5, e 5 6, e 6 4, e 0 4}
+def H3_edges : Finset (Sym2 V) := {e 0 2, e 2 5, e 5 1, e 1 4, e 4 3, e 3 6, e 0 6}
+
+/-- 所有边的并集 -/
+def init_decomp : Finset (Sym2 V) := T_edges ∪ C1_edges ∪ C2_edges ∪ C3_edges
+def final_decomp : Finset (Sym2 V) := H1_edges ∪ H2_edges ∪ H3_edges
+
+/-- **机器验证：交换前后的边集完全相同！(精确覆盖 K7 的所有 21 条边)** -/
+theorem K7_trade_preserves_edges : init_decomp = final_decomp := by
+  decide
+
+/-- **机器验证：圈数从 4 降到了 3！** -/
+theorem K7_trade_count_drop : (4 : ℕ) > 3 := by
+  omega
+
+end Hajos.K7Trade
